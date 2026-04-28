@@ -1,0 +1,47 @@
+# ==============================================================================
+# Traefik Stack - Reverse Proxy สำหรับ Docker Swarm
+# ==============================================================================
+
+version: "3.8"
+
+services:
+  traefik:
+    image: traefik:v3.0
+    command:
+      # ── API & Dashboard ──
+      - "--api.dashboard=true"
+      - "--api.insecure=true"          # เปิด dashboard ที่ port 8080 (dev only)
+
+      # ── Docker Swarm Provider ──
+      - "--providers.swarm.endpoint=unix:///var/run/docker.sock"
+      - "--providers.swarm.exposedByDefault=false"   # ต้องติด label ถึงจะ expose
+      - "--providers.swarm.network=traefik-public"
+
+      # ── Entrypoints ──
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      # ── Logging ──
+      - "--log.level=INFO"
+
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"     # Traefik Dashboard
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    networks:
+      - traefik-public
+
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager    # Traefik รันบน manager เท่านั้น
+      restart_policy:
+        condition: on-failure
+
+networks:
+  traefik-public:
+    external: true

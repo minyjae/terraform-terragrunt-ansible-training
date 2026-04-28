@@ -1,0 +1,40 @@
+# ==============================================================================
+# Role: portainer - Deploy Portainer CE บน Docker Swarm
+# Portainer = Web UI สำหรับจัดการ Docker containers/stacks/swarm
+# เข้าใช้งานผ่าน https://<MANAGER_IP>:9443
+# ==============================================================================
+
+- name: Create Portainer data volume
+  command: docker volume create portainer_data
+  register: volume_result
+  changed_when: volume_result.rc == 0
+  failed_when: volume_result.rc != 0 and 'already exists' not in volume_result.stderr
+
+- name: Deploy Portainer as Swarm service
+  command: >
+    docker service create
+    --name portainer
+    --publish 9443:9443
+    --replicas=1
+    --constraint 'node.role == manager'
+    --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock
+    --mount type=volume,src=portainer_data,dst=/data
+    portainer/portainer-ce:latest
+  register: portainer_result
+  changed_when: portainer_result.rc == 0
+  failed_when: portainer_result.rc != 0 and 'already exists' not in portainer_result.stderr
+
+- name: Wait for Portainer to start
+  pause:
+    seconds: 15
+
+- name: Verify Portainer is running
+  command: docker service ls --filter name=portainer --format '{{ "{{" }} .Replicas {{ "}}" }}'
+  register: portainer_status
+  changed_when: false
+
+- name: Show Portainer status
+  debug:
+    msg: |
+      Portainer replicas: {{ portainer_status.stdout }}
+      Access Portainer at: https://{{ ansible_default_ipv4.address }}:9443

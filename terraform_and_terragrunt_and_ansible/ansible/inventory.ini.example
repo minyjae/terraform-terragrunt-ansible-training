@@ -1,0 +1,20 @@
+# ==============================================================================
+# Ansible Inventory
+# หลังรัน terragrunt apply ให้ copy output "ansible_inventory" มาใส่ inventory.ini
+# หรือรัน: terragrunt output -raw ansible_inventory > ../ansible/inventory.ini
+# ==============================================================================
+
+[manager]
+1.2.3.4               # ← เปลี่ยนเป็น IP จริงของ manager
+
+[workers]
+5.6.7.8               # ← เปลี่ยนเป็น IP จริงของ worker 1
+9.10.11.12            # ← เปลี่ยนเป็น IP จริงของ worker 2
+
+[swarm:children]
+manager
+workers
+
+[all:vars]
+ansible_user=ubuntu
+ansible_ssh_private_key_file=~/.ssh/your-key.pem

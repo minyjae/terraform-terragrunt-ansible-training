@@ -1,0 +1,15 @@
+terraform_and_terragrunt/
+├── terragrunt.hcl                          ← Root: backend + provider (เขียนครั้งเดียว)
+│
+├── _envcommon/
+│   └── web-app.hcl                         ← Shared config ที่ทุก env ใช้ร่วมกัน
+│
+├── staging/
+│   ├── env.hcl                             ← ค่าเฉพาะ staging
+│   └── web-app/
+│       └── terragrunt.hcl                  ← include root + envcommon + override
+│
+└── production/
+    ├── env.hcl                             ← ค่าเฉพาะ production
+    └── web-app/
+        └── terragrunt.hcl 

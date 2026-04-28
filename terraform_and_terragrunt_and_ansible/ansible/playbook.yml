@@ -1,0 +1,39 @@
+# ==============================================================================
+# Main Playbook - ติดตั้ง Docker Swarm + Traefik + Portainer
+# วิธีรัน: ansible-playbook -i inventory.ini playbook.yml
+# ==============================================================================
+
+# ── Step 1: ติดตั้ง Docker บนทุก node ──────────────────────────────────────
+- name: Install Docker on all nodes
+  hosts: swarm
+  become: true
+  roles:
+    - docker
+
+# ── Step 2: ตั้งค่า Swarm Manager ──────────────────────────────────────────
+- name: Initialize Swarm on manager
+  hosts: manager
+  become: true
+  roles:
+    - swarm-manager
+
+# ── Step 3: Worker join เข้า Swarm ─────────────────────────────────────────
+- name: Join workers to Swarm
+  hosts: workers
+  become: true
+  roles:
+    - swarm-worker
+
+# ── Step 4: Deploy Traefik (reverse proxy) บน manager ──────────────────────
+- name: Deploy Traefik
+  hosts: manager
+  become: true
+  roles:
+    - traefik
+
+# ── Step 5: Deploy Portainer (Docker UI) บน manager ───────────────────────
+- name: Deploy Portainer
+  hosts: manager
+  become: true
+  roles:
+    - portainer

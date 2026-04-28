@@ -1,0 +1,35 @@
+# ==============================================================================
+# Role: traefik - Deploy Traefik บน Docker Swarm
+# ==============================================================================
+
+- name: Create Traefik directory
+  file:
+    path: /opt/traefik
+    state: directory
+    mode: "0755"
+
+- name: Copy Traefik stack file
+  template:
+    src: traefik-stack.yml.j2
+    dest: /opt/traefik/traefik-stack.yml
+    mode: "0644"
+
+- name: Deploy Traefik stack
+  command: >
+    docker stack deploy
+    -c /opt/traefik/traefik-stack.yml
+    traefik
+  changed_when: true
+
+- name: Wait for Traefik to start
+  pause:
+    seconds: 10
+
+- name: Verify Traefik is running
+  command: docker service ls --filter name=traefik_traefik --format '{{ "{{" }} .Replicas {{ "}}" }}'
+  register: traefik_status
+  changed_when: false
+
+- name: Show Traefik status
+  debug:
+    msg: "Traefik replicas: {{ traefik_status.stdout }}"

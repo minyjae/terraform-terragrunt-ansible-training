@@ -1,0 +1,41 @@
+terraform_and_terragrunt_and_ansible/
+│
+├── modules/web-app/                    ← แก้ไข
+│   ├── variables.tf                    ← เพิ่ม key_name
+│   ├── compute.tf                      ← เปลี่ยนเป็น 1 manager + 2 workers
+│   ├── networking.tf                   ← เพิ่ม ports: SSH, Swarm, Traefik, Portainer
+│   ├── outputs.tf                      ← เพิ่ม manager_ip, worker_ips, ansible_inventory
+│   ├── storage.tf                      (เดิม)
+│   └── database.tf                     (เดิม)
+│
+├── _envcommon/web-app.hcl              ← เพิ่ม key_name
+│
+└── ansible/                            ← สร้างใหม่ทั้งหมด
+    ├── inventory.ini.example
+    ├── playbook.yml
+    └── roles/
+        ├── docker/tasks/main.yml       ← ติดตั้ง Docker Engine
+        ├── swarm-manager/tasks/main.yml ← docker swarm init + สร้าง overlay network
+        ├── swarm-worker/tasks/main.yml  ← docker swarm join
+        ├── traefik/
+        │   ├── tasks/main.yml          ← docker stack deploy traefik
+        │   └── templates/traefik-stack.yml.j2
+        └── portainer/tasks/main.yml    ← docker service create portainer
+วิธีรันทั้งหมด
+
+# ── 1. Terraform: สร้าง EC2 3 ตัว ──
+cd develop/web-app
+terragrunt apply
+
+# ── 2. สร้าง inventory จาก output ──
+terragrunt output -raw ansible_inventory > ../../ansible/inventory.ini
+
+# ── 3. Ansible: ติดตั้ง Docker + Swarm + Traefik + Portainer ──
+cd ../../ansible
+ansible-playbook -i inventory.ini playbook.yml
+หลังรันเสร็จ เข้าใช้งานได้ที่
+Service	URL	หน้าที่
+Traefik Dashboard	http://<MANAGER_IP>:8080	ดู routing rules
+Portainer	https://<MANAGER_IP>:9443	จัดการ Docker ผ่าน Web UI
+Web (HTTP)	http://<MANAGER_IP>	Traefik รับ traffic แล้ว route ไปหา containers
+สิ่งที่ต้องทำก่อนรัน: เปลี่ยน key_name = "my-key-pair" ใน _envcommon/web-app.hcl ให้ตรงกับชื่อ Key Pair ที่สร้างไว้ใน AWS Console ครับ

@@ -1,0 +1,15 @@
+# ==============================================================================
+# Role: swarm-worker - ให้ node นี้ join เข้า Swarm cluster
+# ==============================================================================
+
+- name: Check if already in Swarm
+  command: docker info --format '{{ "{{" }} .Swarm.LocalNodeState {{ "}}" }}'
+  register: swarm_status
+  changed_when: false
+
+- name: Join Swarm as worker
+  command: >
+    docker swarm join
+    --token {{ hostvars[groups['manager'][0]].swarm_worker_token }}
+    {{ hostvars[groups['manager'][0]].swarm_manager_ip }}:2377
+  when: swarm_status.stdout != "active"
