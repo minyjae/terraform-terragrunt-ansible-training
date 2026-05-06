@@ -20,7 +20,7 @@ remote_state {
   }
 
   config = {
-    bucket         = "devops-directive-tf-state"
+    bucket         = "training-storage-tf-state"
     key            = "${path_relative_to_include()}/terraform.tfstate"
     #                 ↑ สร้าง key อัตโนมัติจาก folder path
     #                 เช่น staging/web-app → "staging/web-app/terraform.tfstate"

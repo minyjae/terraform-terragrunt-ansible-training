@@ -27,12 +27,10 @@ inputs = {
   # create_dns_zone = false
 
   # Database username ที่ใช้ร่วมกัน
-  db_user = "foo"
+  db_user = "webappadmin"
 
-  # AMI สำหรับ EC2 instances (Ubuntu 22.04 / ap-southeast-1)
-  ami = "ami-011899242bb902164"
 
   # SSH Key Pair สำหรับ SSH เข้า EC2 (Ansible ใช้ SSH ในการติดตั้ง Docker + Swarm)
   # ← เปลี่ยนเป็นชื่อ key pair ที่สร้างไว้ใน AWS Console
-  key_name = "my-key-pair"
+  key_name = "training-devops-keypair"
 }

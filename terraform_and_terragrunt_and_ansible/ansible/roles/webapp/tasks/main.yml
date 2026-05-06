@@ -1,0 +1,49 @@
+# ==============================================================================
+# Web App Role - ดึง Docker image จาก ECR แล้วรันบน Swarm
+# ==============================================================================
+
+# ── ดึง ECR login credentials ────────────────────────────────────────────────
+- name: Get ECR login token
+  shell: |
+    aws ecr get-login-password --region ap-southeast-1 | \
+    docker login --username AWS --password-stdin {{ ecr_registry }}
+  environment:
+    AWS_DEFAULT_REGION: ap-southeast-1
+  register: ecr_login_result
+  changed_when: false
+
+# ── ดึง image จาก ECR ───────────────────────────────────────────────────────
+- name: Pull Docker image from ECR
+  community.docker.docker_image:
+    name: "{{ ecr_image_url }}"
+    source: pull
+    state: present
+  register: image_pull_result
+
+# ── สร้าง Swarm service จาก image ────────────────────────────────────────────
+- name: Deploy web app service to Swarm
+  community.docker.docker_swarm_service:
+    name: "{{ app_name }}"
+    image: "{{ ecr_image_url }}"
+    publish:
+      - published_port: 80
+        target_port: 3000           # เปลี่ยนให้ตรงกับ port ของ app
+    replicas: 2
+    placement:
+      constraints:
+        - node.role != manager      # รันบน worker เท่านั้น
+    state: present
+    force_update: "{{ force_update | default(false) }}"
+
+# ── ตรวจสอบสถานะ service ──────────────────────────────────────────────────
+- name: Check service status
+  community.docker.docker_service_info:
+    name: "{{ app_name }}"
+  register: service_info
+
+- name: Display service info
+  debug:
+    msg: |
+      Service: {{ app_name }}
+      Replicas: {{ service_info.service.Spec.Mode.Replicated.Replicas }}
+      Status: {{ service_info.service.ServiceStatus.RunningTasks }} tasks running

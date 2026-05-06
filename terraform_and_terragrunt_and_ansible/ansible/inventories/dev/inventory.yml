@@ -1,0 +1,36 @@
+all:
+  vars:
+    project_name: web-app-develop
+    env_name: develop
+    aws_region: ap-southeast-1
+    cloud_provider: aws
+
+  children:
+    docker_swarm:
+      children:
+        docker_swarm_managers:
+          hosts:
+            manager-01:
+              ansible_host: 52.77.251.92
+              ansible_user: ubuntu
+              private_ip: 172.31.27.31
+              public_ip: 52.77.251.92
+              node_role: manager
+              is_primary_manager: true
+
+        docker_swarm_workers:
+          hosts:
+            worker-01:
+              ansible_host: 47.129.222.116
+              ansible_user: ubuntu
+              private_ip: 172.31.20.114
+              public_ip: 47.129.222.116
+              node_role: worker
+              is_primary_manager: false
+            worker-02:
+              ansible_host: 3.1.204.233
+              ansible_user: ubuntu
+              private_ip: 172.31.24.96
+              public_ip: 3.1.204.233
+              node_role: worker
+              is_primary_manager: false

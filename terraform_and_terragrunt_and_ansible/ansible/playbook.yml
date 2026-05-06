@@ -37,3 +37,15 @@
   become: true
   roles:
     - portainer
+
+# ── Step 6: Deploy Web App จาก ECR ──────────────────────────────────────────
+- name: Deploy Web App from ECR
+  hosts: manager
+  become: true
+  vars:
+    ecr_registry: "705536590202.dkr.ecr.ap-southeast-1.amazonaws.com"
+    ecr_image_url: "705536590202.dkr.ecr.ap-southeast-1.amazonaws.com/web-app-develop:latest"
+    app_name: "web-app"
+    force_update: true
+  roles:
+    - webapp

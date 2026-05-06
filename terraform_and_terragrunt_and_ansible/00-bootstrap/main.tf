@@ -27,7 +27,7 @@ provider "aws" {
 # ── S3 Bucket สำหรับเก็บ State File ──────────────────────────────────────
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "devops-directive-tf-state"
+  bucket = "training-storage-tf-state"
 
   tags = {
     Name      = "Terraform State"
